@@ -89,12 +89,17 @@ sub add_kml {
   my ($self, $kml) = @_;
   my $time = 0;
   my @points = ();
-  while ($kml =~ s/<(when|gx:coord)>([^<]*)<\/\g1>//) {
-    print STDERR "Entry: $1 => $2\n";
+  while ($kml =~ /<(when|gx:coord)>([^<]*)<\/\g1>/g) {
+    #print STDERR "Entry: $1 => $2\n";
     if ($1 eq 'when') {
       $time = str2time($2);
     } else {
       push @points, [$time, $2];
+      if (@points > 100000) {
+        print STDERR "Writing 100000 points ending at $time\n";
+        $self->bulk_add(@points);
+        @points = ();
+      }
     }
   }
   if (@points) {

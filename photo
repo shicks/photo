@@ -4,12 +4,28 @@
 # Usage: photo COMMAND [ARGS...]
 # Commands:
 #   kml                  Reads KML file(s) and stores in database.
-#   split                Splits photos into time/tag data.
-#   merge                Merges time/tag data back into photos.
+#   import               Splits photos into time/tag data.
+#   export               Merges time/tag data back into photos.
 #   geotag               Geotags a directory from the database.
+#   adjust               Adjusts timezones and timestamps
+#   help [COMMAND]       Prints help.
+
+# Future commands???:
 #   fixtime              Fixes timestamps.
 #   shift                Shifts timestamps.
-#   help [COMMAND]       Prints help.
+
+# new plan:
+#  - initial process by renaming photo to
+#        yyyy-mm-ddThh:mm:ss.mmm-tz:00_orig.jpg
+#    dumping all exif data to a set of flat files exif_orig.jpg
+#    as plain-text associative arrays (escaping newlines and backslashes)
+#  - provide scripts to manipulate filenames and exifs
+#  - script to add geotagging to exif files
+#  - final process to merge final results, renaming back to original
+# benefits:
+#  - single initial wait (copy/dump), then all processing happens instantly
+#  - could merge the dump with a smart import script that deduped
+#  - final processor could move to a "to upload" folder?
 
 use strict;
 use warnings;
@@ -19,12 +35,15 @@ use FindBin;
 use lib "$FindBin::RealBin";
 
 use Sdh::Command::Adjust;
-use Sdh::Command::Kml;
+use Sdh::Command::Export;
+use Sdh::Command::Geotag;
 use Sdh::Command::Import;
+use Sdh::Command::Kml;
 
 my %commands = (
   adjust => $Sdh::Command::Adjust::command,
   export => $Sdh::Command::Export::command,
+  geotag => $Sdh::Command::Geotag::command,
   import => $Sdh::Command::Import::command,
   kml => $Sdh::Command::Kml::command,
 );

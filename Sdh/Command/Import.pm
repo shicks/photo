@@ -24,8 +24,9 @@ use Sdh::Tree;
 sub run {
   my $recursive = 0;
   GetOptions('recursive|r' => \$recursive);
-  sub process {
-    my $path = shift or die 'No path given';
+
+  @main::ARGV = Sdh::Tree::recurse(@main::ARGV) if $recursive;
+  foreach my $path (@main::ARGV) {
     my $base = basename($path);
     my $dir = dirname($path);
 
@@ -42,7 +43,7 @@ sub run {
 
     print STDERR "Importing photo $path\n";
     my $exif = Sdh::Exif->new($path);
-    my %info = %{$exif->info()};
+    my %info = $exif->info();
 
     # Extract time information and change the filename.
     my $time = $info{'EXIF:DateTimeOriginal'};
@@ -77,7 +78,6 @@ sub run {
     }
     close EXIF;
   }
-  Sdh::Tree::run(\&process, \@main::ARGV, {recursive => $recursive});
 }
 
 our $command = Sdh::Command->new(

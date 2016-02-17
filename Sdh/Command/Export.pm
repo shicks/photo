@@ -23,10 +23,10 @@ sub run {
   my $recursive = 0;
   GetOptions('recursive|r' => \$recursive);
 
-  our %visited = ();
+  my %visited = ();
+  @main::ARGV = Sdh::Tree::recurse(@main::ARGV) if $recursive;
 
-  sub process {
-    my $path = shift or die 'No path given';
+  foreach my $path (@main::ARGV) {
     return unless -e $path; # note: we sometimes move files
     my $pair = Sdh::ExifPair->new($path);
     $pair->fix();
@@ -36,9 +36,8 @@ sub run {
     $visited{$image} = 1;
     my $exif = Sdh::Exif->new($image);
     my %info = $pair->info();
-    $exif->save(%info);
+    $exif->write_info(%info);
   }
-  Sdh::Tree::run(\&process, \@main::ARGV, {recursive => $recursive});
 }
 
 our $command = Sdh::Command->new(

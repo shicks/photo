@@ -5,36 +5,25 @@ package Sdh::Tree;
 use strict;
 use warnings;
 
-sub _run {
-  my ($func, $path, $opts) = @_;
-  if (-d $path) {
-    if ($opts->{'recursive'}) {
-      my @files = (); # Collect first
+# Usage: @main::ARGV = Sdh::Tree::recurse(@main::ARGV) if $recursive;
+sub recurse {
+  local $_;
+  my @files = ();
+  while (my $path = shift) { 
+    if (-d $path) {
       opendir DIR, $path;
       while ($_ = readdir DIR) {
 	next if $_ eq '.' or $_ eq '..';
-        push @files, $_;
+	push @files, recurse("$path/$_");
       }
-      foreach (@files) {
-	_run($func, "$path/$_", $opts);
-      }
+      closedir DIR;
+    } elsif (-e $path) {
+      push @files, $path;
     } else {
-      print STDERR "Skipping directory $path\n";
+      print STDERR "No such file $path\n";
     }
-  } elsif (!-e $path) {
-    print STDERR "No such file $path\n";
-  } else {
-    &$func($path);
-  }  
-}
-
-# Usage: Sdh::Tree::run(\&process, \@paths, {recursive => 1});
-sub run {
-  my ($func, $paths, $opts) = @_;
-
-  foreach (@$paths) {
-    _run($func, $_, $opts);
   }
+  return @files;
 }
 
 1;

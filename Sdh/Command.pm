@@ -1,5 +1,16 @@
 # Module for registering commands.
 
+
+# TODO - consider a :tag interface where modules can
+# specify a function or two, and tag args w/ their
+# key and helptext, etc.  different "modes" for the
+# main function -> all files, imagepairs, etc
+#   - the latter would automatically maintain a list
+#     of visited images and would pass in ExifPair objs
+# also, auto-add to the list of commands...
+# also add --help support everywhere...?
+
+
 package Sdh::Command;
 
 my %allowed = (

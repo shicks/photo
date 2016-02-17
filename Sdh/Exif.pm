@@ -37,7 +37,7 @@ sub mtime {
   return $self->{'stat'}->[9];
 }
 
-# Gets the info tags, returning as a hash reference.
+# Gets the info tags, returning as a hash.
 sub info {
   my ($self,) = @_;
   my $exif = $self->{'exif'};
@@ -52,12 +52,14 @@ sub info {
     my $value = $info->{$_};
     $self->{'info'}->{$tag} = $value;
   }
-  return $self->{'info'};
+  $self->{'read_info'} = 1;
+  return %{$self->{'info'}};
 }
 
-# Writes the hash.
+# Writes the hash.  Usage: $exif->write_info(%tags)
 sub write_info {
   my $self = shift;
+  my $exif = $self->{'exif'};
   my %tags = @_;
   my %info = $self->info();
   foreach (keys %info) {
@@ -65,15 +67,9 @@ sub write_info {
   }
   my $diff = 0;
   foreach (keys %tags) {
-    if ($tags{$_} eq $info{$_}) {
-
-
-      ##### TODO - what was supposed to go here?
-
-    }
-    $self->{'exif'}->SetNewValues($_, $tags{$_}) unless ;
+    $exif->SetNewValues($_, $tags{$_}) unless $tags{$_} eq $info{$_};
   }
-  
+  $self->must_succeed($exif->WriteInfo($self->{'file'}));
 }
 
 1;

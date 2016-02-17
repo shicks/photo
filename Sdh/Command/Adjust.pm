@@ -30,17 +30,18 @@ use Sdh::Tree;
 
 sub run {
   my $recursive = 0;
-  our $timezone = '';
-  our $location = '';
-  our $shift = '';
+  my $timezone = '';
+  my $location = '';
+  my $shift = '';
   GetOptions(
     'recursive|r' => \$recursive,
     'shift|s=s' => \$shift,
     'location|l=s' => \$location,
     'timezone|z=s' => \$timezone,
   );
-  sub process {
-    my ($file,) = @_;
+  @main::ARGV = Sdh::Tree::recurse(@main::ARGV) if $recursive;
+
+  foreach my $file (@main::ARGV) {
     my $exif = Sdh::ExifPair->new($file);
     if ($timezone) {
       my $date = $exif->date();
@@ -56,7 +57,6 @@ sub run {
       $exif->set_date($date + $duration);
     }
   }
-  Sdh::Tree::run(\&process, \@main::ARGV, {recursive => $recursive});
 }
 
 our $command = Sdh::Command->new(
