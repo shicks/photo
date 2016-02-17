@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+
+# Initial import on a directory.
+#  - For each photo/video, renames based on time, and extracts exif info
+#  - Filename format is ISO datetime w/ millis and TZ, followed by underscore
+#    and original filename (lowercased)
+#  - Exif file is exif_ followed by original filename
+
+use strict;
+use warnings;
+
+use File::Basename qw(basename dirname);
+use Getopt::Long qw(GetOptions);
+use Image::ExifTool qw(:Public);
+
+my $recursive = 0;
+Getopt::Long::Configure qw(gnu_getopt);
+GetOptions('recursive|r' => \$recursive);
+
+sub process {
+  my $path = shift;
+  if (-d $path) {
+    if ($recursive) {
+      my @contents = ();
+      opendir DIR, $path;
+      while ($_ = readdir DIR) {
+	next if $_ eq '.' or $_ eq '..';
+	process("$path/$_");
+      }
+    } else {
+      print STDERR "Skipping directory $path\n";
+    }
+    return;
+  }
+  # Hopefully we have an image file now, so punt over to Image::ExifTool
+
+  my $base = basename($path);
+  my $dir = dirname($path);
+
+  our $exif = Image::ExifTool->new();
+  sub must_succeed {
+    my $success = shift;
+    if (!$success) {
+      my $error = $exif->GetValue('Error');
+      die "EXIF operation failed: $error";
+    }
+  }
+
+  # TODO - consider options: FastScan=1 or 2?
+
+  must_succeed($exif->ExtractInfo($path, {Composite => 0}));
+  my $info = $exif->GetInfo();
+  my %grouped = ();
+  foreach (keys %$info) {
+    my $group = $exif->GetGroup($_, 0);
+    my $tag = "$group:$_";
+    $tag =~ s/\s+\(\d+\)$//;
+    my $value = $info->{$_};
+    $grouped{$tag} = $value;
+  }
+
+  # Extract time information and change the filename.
+  my $time = $grouped{'EXIF:DateTimeOriginal'} or die "No time: $path";
+  my $zone = $grouped{'MakerNotes:TimeZone'} or die "No time zone: $path";
+  $time =~ s/:/-/;
+  $time =~ s/:/-/; # Only replace the first two
+  $time =~ s/ /T/;
+  $zone = "+$zone" if $zone =~ /^\d/;
+  $time = "$time$zone";
+  my $newpath = $path;
+  $newpath =~ tr/A-Z/a-z/;
+  $newpath = "$dir/$time_$newpath";
+  system "mv '$path' '$newpath'";
+
+  # Write all the exif data to a separate file.
+  open EXIF, ">$newpath.exif";
+  foreach (sort keys %grouped) {
+    print EXIF "$_\t$grouped{$_}\n";
+  }
+  close EXIF;
+
+  # TODO - see if the file has a geotag, and if not, consult the database.
+  # TODO - optionally allow outputting a list of untagged files, to
+  #        expedite future runs
+
+}
+
+foreach (@ARGV) {
+  process($_);
+}

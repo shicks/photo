@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+
+# Usage: read-kml [--db=DB] KML...
+# Adds the given KML file(s) to the DB (~/.track, by default).
+
+use strict;
+use warnings;
+
+use Getopt::Long qw(:config gnu_getopt require_order bundling);
+use Sdh::Geo::Track;
+
+my $db = '';
+GetOptions('db=s' => \$db);
+
+my $track = Sdh::Geo::Track->new($db);
+
+local ($/) = undef;
+$_ = <>;
+
+$track->add_kml($_);

@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+
+# This is the main entry point for the photo app.
+# Usage: photo COMMAND [ARGS...]
+# Commands:
+#   kml                  Reads KML file(s) and stores in database.
+#   split                Splits photos into time/tag data.
+#   merge                Merges time/tag data back into photos.
+#   geotag               Geotags a directory from the database.
+#   fixtime              Fixes timestamps.
+#   shift                Shifts timestamps.
+#   help [COMMAND]       Prints help.
+
+use strict;
+use warnings;
+
+# Ensure the attached libraries are available.
+use FindBin;
+use lib "$FindBin::RealBin";
+
+use Sdh::Command::Adjust;
+use Sdh::Command::Kml;
+use Sdh::Command::Import;
+
+my %commands = (
+  adjust => $Sdh::Command::Adjust::command,
+  export => $Sdh::Command::Export::command,
+  import => $Sdh::Command::Import::command,
+  kml => $Sdh::Command::Kml::command,
+);
+
+my $command = '';
+$command = $commands{$ARGV[0] or ''};
+if ($command) {
+  shift;
+  $command->run();
+} else {
+  $command = $commands{$ARGV[1] or ''} if ($ARGV[0] or '') eq 'help';
+  if ($command) {
+    print STDERR ($command->summary() . "\n");
+    print STDERR $command->usage();
+  } else {
+    print STDERR <<EOF;
+Simple command-line photo manager.
+Usage: photo COMMAND ARGS...
+Commands:
+EOF
+    foreach (sort keys %commands) {
+      printf STDERR "  %-18s\%s\n", $_, $commands{$_}->summary();
+    }
+    print STDERR "  help [COMMAND]    Prints a help messge.\n";
+    exit 2 unless $command or (@ARGV == 1 and $ARGV[0] eq 'help');
+  }
+}
