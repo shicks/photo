@@ -10,8 +10,54 @@
 # also, auto-add to the list of commands...
 # also add --help support everywhere...?
 
-
 package Sdh::Command;
+
+# Maps command to package
+my %commands = ();
+# Maps package to usage string
+my %usages = ();
+# Maps package to one-line summaries
+my %summaries = ();
+# Maps package to options
+my %options = ();
+# Maps package to extra argument spec ('', FILE, RECURSIVE)
+my %extra = ();
+
+
+
+# Called by main
+sub run {
+
+
+}
+
+
+
+sub import {
+  my $pkg = shift;
+  my %args = @_;
+  return unless $args{'command'};
+  
+  my $callpkg = caller(0);
+  
+  use Attribute::Handlers;
+
+
+
+
+}
+
+sub ::flag :ATTR {
+  my @arg = @{$_[4]};
+  die "Bad flag" unless @arg == 2;
+  my $pkg = $_[0];
+  my $spec = $arg[0];
+  my $desc = $arg[1];
+  ### todo - check that we have a var reference, find out what kind
+}
+
+
+
 
 my %allowed = (
   summary => 1,

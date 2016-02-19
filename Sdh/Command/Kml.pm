@@ -5,6 +5,25 @@ package Sdh::Command::Kml;
 use strict;
 use warnings;
 
+use Sdh::Command (
+  command => 'kml',
+  summary => 'Read KML data into the database.',
+  usage => 'photo kml [OPTIONS...] FILES...',
+  args => 'RECURSIVE');
+
+#my $recursive :flag("recursive|r", "Scan paths recursively");
+my $db :flag("db=s", "Sets the geotag database file [~/.track]");
+
+sub run {
+  my $track = Sdh::Geo::Track->new($db);
+
+  local ($/) = undef;
+  $_ = <>;
+
+  $track->add_kml($_);
+}
+
+
 use Getopt::Long qw(:config gnu_getopt bundling);
 use Sdh::Command;
 use Sdh::Geo::Track;
