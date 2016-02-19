@@ -47,13 +47,34 @@ sub import {
 
 }
 
+
+# Usage:
+#   my $whatever :flag(help => 'Some flag', default => 3, spec => 'foo|f=s');
+#   my @list :flag(help => 'blah', spec => 'blah=s@');
+#   my @comma :flag(help => 'blah', spec => 'stuff=s', delim => /,/);
+
 sub ::flag :ATTR {
   my @arg = @{$_[4]};
   die "Bad flag" unless @arg == 2;
   my $pkg = $_[0];
-  my $spec = $arg[0];
-  my $desc = $arg[1];
+  my $spec = $arg[0]; # string
+  my $desc = $arg[1]; # string
   ### todo - check that we have a var reference, find out what kind
+  # parse the $spec -> if there's an = then it takes an argument
+  #   -- changes how we deal with the reference
+
+  my $parsed = $spec;
+  my $argtype = '';
+  $argtype = $1 if $parsed =~ s/=(.+)$//;
+  my $multi = $1 = $argtype =~ s/^.\K([@%])$//;
+  die "Don't support multiple args: $spec" if length($argtype) > 1;
+  my $falseable = $parsed =~ s/!$//;
+  my $incremental = $parsed =~ s/\+$//;
+
+  my $reftype = ref $_[2];
+  if ($reftype eq 'SCALAR') {
+    
+  } elsif ($reftype eq '
 }
 
 
