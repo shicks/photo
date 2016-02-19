@@ -107,4 +107,19 @@ sub add_kml {
   }
 }
 
+sub all_times {
+  local $_;
+  my ($self,) = @_;
+  my $db = $self->{'db'};
+  my @result = ();
+  my $query = "SELECT time FROM track ORDER BY time;";
+  open SQL, "sqlite3 $db '$query' |";
+  while (<SQL>) {
+    chomp $_;
+    push @result, int($_);
+  }
+  close SQL;
+  return @result;
+}
+
 1;

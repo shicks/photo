@@ -39,6 +39,7 @@ use Sdh::Command::Export;
 use Sdh::Command::Geotag;
 use Sdh::Command::Import;
 use Sdh::Command::Kml;
+use Sdh::Command::Missing;
 
 my %commands = (
   adjust => $Sdh::Command::Adjust::command,
@@ -46,6 +47,7 @@ my %commands = (
   geotag => $Sdh::Command::Geotag::command,
   import => $Sdh::Command::Import::command,
   kml => $Sdh::Command::Kml::command,
+  missing => $Sdh::Command::Missing::command,
 );
 
 my $command = '';
